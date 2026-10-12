@@ -1,7 +1,7 @@
 // Offline shell: the app's own files come from the network when it is reachable and
 // from this cache otherwise. Supabase calls are never cached (data has its own local copy).
-const CACHE = "p27-v1";
-const SHELL = ["./", "index.html", "db.js", "config.js", "vendor/supabase.js", "manifest.webmanifest",
+const CACHE = "p27-v2";
+const SHELL = ["./", "index.html", "db.js", "nutrition.js", "config.js", "vendor/supabase.js", "manifest.webmanifest",
   "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png"];
 
 self.addEventListener("install", e => {
