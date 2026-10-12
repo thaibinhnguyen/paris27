@@ -53,7 +53,7 @@ em{font-style:italic;font-weight:400}
 
 /* tab bar */
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--parchment);border-top:1px solid var(--taupe);padding-bottom:env(safe-area-inset-bottom,0px)}
-.tabs div{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tabs div{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
 .tabs button{border:0;background:none;padding:10px 2px 12px;font-size:11px;font-weight:600;color:var(--graphite);display:flex;flex-direction:column;align-items:center;gap:5px}
 .tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.5}
 .tabs button[aria-current="page"]{color:var(--seal)}
@@ -210,12 +210,13 @@ input,textarea{font-size:16px}
 <script src="vendor/supabase.js"></script>
 <script src="config.js"></script>
 <script src="db.js"></script>
+<script src="nutrition.js"></script>
 <script>
 (function(){
 "use strict";
 // ---------- i18n ----------
 const T={
- en:{today:"Today",week:"Week",plan:"Plan",progress:"Progress",tools:"Tools",done:"Done",partial:"Partial",missed:"Missed",notLogged:"Not logged",
+ en:{today:"Today",week:"Week",plan:"Plan",progress:"Progress",tools:"Tools",nutri:"Food",waist:"Waist",done:"Done",partial:"Partial",missed:"Missed",notLogged:"Not logged",
   wk:"Week",day:"Day",planned:"Plan",set:"Set",addSet:"+ Add set",removeSet:"Remove last set",run:"Run",distance:"Distance (km)",time:"Time (h:mm:ss)",pace:"Pace",
   test5k:"5 km test time (mm:ss)",stations:"Station times (mm:ss)",notes:"Notes",notesPh:"How it felt, changes, anything to remember",saved:"Saved",saving:"Saving…",unsaved:"Not saved. Check your connection.",
   daysLeft:"days to race",kmPlan:"km planned",kmDone:"km done",sessions:"sessions done",loading:"Loading your plan…",noDb:"Your training data could not load. Check your connection and reopen the app.",
@@ -225,7 +226,7 @@ const T={
   frNote:"Coaching notes stay in French.",checkin:"Morning check-in",weight:"Weight",sleepH:"Sleep",sleepQ:"Sleep quality",sleepQHint:"1 poor · 5 great",fatigue:"Fatigue",fatigueHint:"1 fresh · 5 exhausted",soreness:"Soreness",sorenessHint:"1 none · 5 strong",rpe:"Session effort (RPE)",rpeHint:"1 easy · 10 max",coach:"Coach review",adjust:"Changes this week",recovery:"Recovery",avg7:"7-day average",noCheckin:"Log a morning check-in on the Today screen to see your weight and recovery trends.",dShort:"D-",brief:"Session brief",gap:"vs plan",of:"of",perHand:"kg/hand",kg:"kg",reps:"reps",openWeek:"Open week",now:"Now",
   dn:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],dl:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],exportFail:"Download was not completed.",
   account:"Account and backup",backup:"Back up (JSON)",restore:"Restore (JSON)",restoreNote:"A JSON backup holds the plan and everything you logged. Restoring adds it to your account and replaces days with the same date.",restored:"entries restored",restoreFail:"This file could not be restored.",signOut:"Sign out",offline:"Saved on the phone. It will sync when the connection is back."},
- fr:{today:"Aujourd'hui",week:"Semaine",plan:"Plan",progress:"Progrès",tools:"Outils",done:"Fait",partial:"Partiel",missed:"Manqué",notLogged:"Non saisi",
+ fr:{today:"Aujourd'hui",week:"Semaine",plan:"Plan",progress:"Progrès",tools:"Outils",nutri:"Repas",waist:"Tour de taille",done:"Fait",partial:"Partiel",missed:"Manqué",notLogged:"Non saisi",
   wk:"Semaine",day:"Jour",planned:"Prévu",set:"Série",addSet:"+ Ajouter une série",removeSet:"Retirer la dernière série",run:"Course",distance:"Distance (km)",time:"Temps (h:mm:ss)",pace:"Allure",
   test5k:"Temps du test 5 km (mm:ss)",stations:"Temps par station (mm:ss)",notes:"Notes",notesPh:"Ressenti, changements, à retenir",saved:"Enregistré",saving:"Enregistrement…",unsaved:"Non enregistré. Vérifiez la connexion.",
   daysLeft:"jours avant la course",kmPlan:"km prévus",kmDone:"km faits",sessions:"séances faites",loading:"Chargement du plan…",noDb:"Impossible de charger vos données. Vérifiez la connexion et rouvrez l'app.",
@@ -318,6 +319,7 @@ const IC={today:'<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height=
  week:'<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
  plan:'<svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M8 15l4-5 3 3 5-7"/></svg>',
  progress:'<svg viewBox="0 0 24 24"><path d="M6 20V11M12 20V5M18 20v-6"/></svg>',
+ nutri:'<svg viewBox="0 0 24 24"><path d="M3.5 12h17a8.5 8.5 0 0 1-17 0z"/><path d="M9 8c0-1.5 1-2 1-3.5M13 8c0-1.5 1-2 1-3.5"/></svg>',
  tools:'<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="7"/><path d="M12 13l3-3M10 3h4"/></svg>',
  l:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',r:'<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>',
  ck:'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'};
@@ -330,7 +332,7 @@ function render(force){
   document.documentElement.lang=lang;
   document.getElementById("lang-en").setAttribute("aria-pressed",lang==="en");
   document.getElementById("lang-fr").setAttribute("aria-pressed",lang==="fr");
-  document.getElementById("tabs").innerHTML=["today","week","plan","progress","tools"].map(k=>`<button type="button" data-tab="${k}" ${S.tab===k?'aria-current="page"':""}>${IC[k]}<span>${t(k)}</span></button>`).join("");
+  document.getElementById("tabs").innerHTML=["today","week","nutri","plan","progress","tools"].map(k=>`<button type="button" data-tab="${k}" ${S.tab===k?'aria-current="page"':""}>${IC[k]}<span>${t(k)}</span></button>`).join("");
   if(window.P27&&!P27.ready){document.getElementById("tabs").innerHTML="";document.getElementById("sub").innerHTML="&nbsp;";P27.renderLogin(V);return}
   if(S.dbFail){V.innerHTML=`<div class="section"><p class="banner">${t("noDb")}</p></div>`;return}
   if(!S.ready.meta||!S.ready.weeks){V.innerHTML=`<div class="section"><p class="empty">${t("loading")}</p></div>`;return}
@@ -340,7 +342,7 @@ function render(force){
   document.getElementById("sub").textContent=(ti.before?t("before")+" "+S.meta.start:t("wk")+" "+ti.w+"/27")+" · "+t("dShort")+left;
   if(!S.sel)S.sel={w:ti.w,d:ti.d};
   if(!S.selWeek)S.selWeek=ti.w;
-  ({today:vDay,week:vWeek,plan:vPlan,progress:vProgress,tools:vTools})[S.tab]();
+  ({today:vDay,week:vWeek,nutri:()=>window.P27N?P27N.view():null,plan:vPlan,progress:vProgress,tools:vTools})[S.tab]();
 }
 
 function vDay(){
@@ -356,7 +358,8 @@ function vDay(){
   if(ti.before||(w-1)*7+d<=ti.raw){
     h+=`<div class="section"><div class="card"><span class="eyebrow">${t("checkin")}</span>
       <div class="grid2"><label class="lbl">${t("weight")}<span class="field"><input id="ciw-${dk}" inputmode="decimal" data-ci="weight" value="${ci.weight??""}" placeholder="79,0"><em>kg</em></span></label>
-      <label class="lbl">${t("sleepH")}<span class="field"><input id="cis-${dk}" inputmode="decimal" data-ci="sleepH" value="${ci.sleepH??""}" placeholder="7,5"><em>h</em></span></label></div>
+      <label class="lbl">${t("sleepH")}<span class="field"><input id="cis-${dk}" inputmode="decimal" data-ci="sleepH" value="${ci.sleepH??""}" placeholder="7,5"><em>h</em></span></label>
+      <label class="lbl">${t("waist")}<span class="field"><input id="ciwa-${dk}" inputmode="decimal" data-ci="waist" value="${ci.waist??""}" placeholder="–"><em>cm</em></span></label></div>
       ${["sleepQ","fatigue","soreness"].map(k=>`<div class="lbl"><span>${t(k)} <small>${t(k+"Hint")}</small></span>${scale("data-ci-scale",k,5,ci[k])}</div>`).join("")}</div></div>`;
   }
   h+=`<div class="section"><div class="seg" role="group" aria-label="Status">${["done","partial","missed"].map(v=>`<button type="button" data-status="${v}" data-v="${v}" aria-pressed="${log.status===v}">${t(v)}</button>`).join("")}</div>${day.session!=="Repos"?`<div class="lbl"><span>${t("rpe")} <small>${t("rpeHint")}</small></span>${scale("data-rpe","rpe",10,log.rpe)}</div>`:""}<div class="save" id="save" aria-live="polite">${saveState?t(saveState):""}</div></div>`;
@@ -499,7 +502,7 @@ function tools(){
 
 // ---------- events ----------
 document.addEventListener("click",e=>{
-  const b=e.target.closest("button");if(!b)return;
+  const b=e.target.closest("button");if(!b||b.closest(".nz"))return;
   if(b.dataset.lang){lang=b.dataset.lang;try{localStorage.setItem("lang",lang)}catch(x){}render(true);return}
   if(b.dataset.tab){S.tab=b.dataset.tab;if(S.tab==="today"){const ti=todayIdx();S.sel={w:ti.w,d:ti.d}}render(true);window.scrollTo(0,0);return}
   if(b.dataset.nav){let n=(S.sel.w-1)*7+S.sel.d+Number(b.dataset.nav);n=Math.max(0,Math.min(188,n));S.sel={w:Math.floor(n/7)+1,d:n%7};render(true);return}
@@ -519,7 +522,7 @@ document.addEventListener("click",e=>{
 });
 function liftRows(id,w,d,i){const l=editable(id);if(!l.lifts[i]){const it=dayData(w,d).items[+i];l.lifts[i]=expand(it).map(p=>({kg:p.kg,reps:p.reps,done:false}))}return l.lifts[i]}
 document.addEventListener("input",e=>{
-  const el=e.target;
+  const el=e.target;if(el.closest(".nz"))return;
   if(["tp","ts","cd","ct"].includes(el.id)){tools();return}
   if(!S.sel)return;const {w,d}=S.sel,id=idOf(w,d);
   const num=v=>{const x=parseFloat(String(v).replace(",","."));return isNaN(x)?null:x};
@@ -577,6 +580,7 @@ render(true);
   db.collection("weeks").onSnapshot(s=>{const o={};s.docs.forEach(x=>o[x.id]=x.data());S.weeks=o;S.ready.weeks=true;later()},fail);
   db.collection("checkins").onSnapshot(s=>{s.docs.forEach(x=>{if(!ciDirty.has(x.id)&&!ciWriting[x.id])S.checkins[x.id]=JSON.parse(JSON.stringify(x.data()))});later()},fail);
   db.collection("reviews").onSnapshot(s=>{const o={};s.docs.forEach(x=>o[x.id]=x.data());S.reviews=o;later()},fail);
+  if(window.P27N)P27N.attach({db,V,S,get lang(){return lang},t,esc,fmtNum,IC,parseISO,ymd,dayData,render,later});
   db.collection("logs").onSnapshot(s=>{s.docs.forEach(x=>{if(!dirty.has(x.id)&&!writing[x.id])S.logs[x.id]=JSON.parse(JSON.stringify(x.data()))});S.ready.logs=true;later()},fail);
 })();
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
