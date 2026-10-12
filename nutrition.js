@@ -14,14 +14,14 @@
       add: "+ Ajouter", food: "Aliment", qty: "Quantité", unknown: "Aliment inconnu. Ajoutez-le en bas de la page.", saveTpl: "Enregistrer comme journée type",
       useTpl: "Remplacer par la journée type", tplSaved: "Journée type enregistrée", last7: "7 derniers jours", avg: "Moyenne", days: "jours saisis", body: "Composition corporelle",
       weight7: "Poids (moy. 7 j)", waist: "Tour de taille", bf: "Masse grasse", lbm: "Masse maigre", smm: "Muscle squelettique", measured: "Mesure", noBody: "Aucune mesure pour l'instant.",
-      newFood: "Ajouter ou corriger un aliment", name: "Nom", base: "Pour (g, ou 1 pièce)", save: "Enregistrer", foodSaved: "Aliment enregistré", remove: "Retirer",
+      newFood: "Ajouter ou corriger un aliment", name: "Nom", base: "Pour (g, ou 1 pièce)", save: "Enregistrer", cancel: "Annuler", foodSaved: "Aliment enregistré", remove: "Retirer",
       saved: "Enregistré", saving: "Enregistrement…", unsaved: "Non enregistré. Vérifiez la connexion.", offline: "Enregistré sur le téléphone. Synchronisation au retour du réseau.", loading: "Chargement…" },
     en: { title: "Nutrition", train: "Training", hard: "Hard", rest: "Rest", target: "target", prot: "Protein", carb: "Carbs", fat: "Fat",
       meals: ["Morning", "Lunch", "Pre-session", "Dinner"], meal: "Meal", empty: "Nothing logged for this day.", usual: "Same as usual", blank: "Start empty",
       add: "+ Add", food: "Food", qty: "Amount", unknown: "Unknown food. Add it at the bottom of the page.", saveTpl: "Save as usual day",
       useTpl: "Replace with usual day", tplSaved: "Usual day saved", last7: "Last 7 days", avg: "Average", days: "days logged", body: "Body composition",
       weight7: "Weight (7-day avg)", waist: "Waist", bf: "Body fat", lbm: "Lean mass", smm: "Skeletal muscle", measured: "Measured", noBody: "No measurement yet.",
-      newFood: "Add or fix a food", name: "Name", base: "Per (g, or 1 piece)", save: "Save", foodSaved: "Food saved", remove: "Remove",
+      newFood: "Add or fix a food", name: "Name", base: "Per (g, or 1 piece)", save: "Save", cancel: "Cancel", foodSaved: "Food saved", remove: "Remove",
       saved: "Saved", saving: "Saving…", unsaved: "Not saved. Check your connection.", offline: "Saved on the phone. It will sync when the connection is back.", loading: "Loading…" }
   };
   const DEF_TARGETS = { train: { k: 2600, p: 165, c: 330, f: 65 }, hard: { k: 2800, p: 165, c: 380, f: 65 }, rest: { k: 2200, p: 165, c: 210, f: 70 } };
@@ -41,6 +41,8 @@
 .nz .seg3 button[aria-pressed="true"]{background:var(--seal);border-color:var(--seal);color:var(--parchment)}
 .nz details summary{cursor:pointer;color:var(--seal);font-weight:600;font-size:15px;list-style:none}
 .nz details summary::-webkit-details-marker{display:none}
+.nz .nf-body{padding-top:14px}
+.nz .nf-act{align-items:center;margin-top:8px}
 .nz .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 @media (max-width:380px){.nz .fr{grid-template-columns:1fr 92px 42px 32px}}`;
 
@@ -155,11 +157,12 @@
     h += `</div>`;
 
     // add or fix a food
-    h += `<div class="section"><details class="card"><summary>${t("newFood")}</summary>
+    // Safari does not lay out <details> as a flex box, so the spacing lives on an inner stack.
+    h += `<div class="section"><details class="card" id="nf"><summary>${t("newFood")}</summary><div class="stack nf-body">
       <label class="lbl">${t("name")}<span class="field"><input id="nf-n" list="nz-foods" autocomplete="off"></span></label>
       <div class="grid2"><label class="lbl">${t("base")}<span class="field"><input id="nf-b" inputmode="decimal" placeholder="100"></span></label><label class="lbl">kcal<span class="field"><input id="nf-k" inputmode="decimal"></span></label></div>
       <div class="grid3"><label class="lbl">${t("prot")}<span class="field"><input id="nf-p" inputmode="decimal"><em>g</em></span></label><label class="lbl">${t("carb")}<span class="field"><input id="nf-c" inputmode="decimal"><em>g</em></span></label><label class="lbl">${t("fat")}<span class="field"><input id="nf-f" inputmode="decimal"><em>g</em></span></label></div>
-      <div class="row2"><button class="btn" type="button" data-nz-food="1">${t("save")}</button></div><p class="save" id="nfmsg" aria-live="polite"></p></details></div></div>`;
+      <div class="row2 nf-act"><button class="btn" type="button" data-nz-food="1">${t("save")}</button><button class="linkbtn mute" type="button" data-nz-cancel="1">${t("cancel")}</button></div><p class="save" id="nfmsg" aria-live="polite"></p></div></details></div></div>`;
     V.innerHTML = h;
   }
 
@@ -184,6 +187,7 @@
       A.db.doc("nutrition/template").set({ meals, updatedAt: new Date().toISOString() }).then(() => { const m = document.getElementById("nmsg2"); if (m) m.textContent = t("tplSaved"); });
       return;
     }
+    if (ds.nzCancel) { ["nf-n", "nf-b", "nf-k", "nf-p", "nf-c", "nf-f"].forEach(id => { document.getElementById(id).value = ""; }); document.getElementById("nfmsg").textContent = ""; document.getElementById("nf").open = false; return; }
     if (ds.nzFood) {
       const g = id => document.getElementById(id).value, n = g("nf-n").trim().replace(/\s+/g, " ");
       const it = { n, b: num(g("nf-b")) || 100, p: num(g("nf-p")) || 0, c: num(g("nf-c")) || 0, f: num(g("nf-f")) || 0, k: num(g("nf-k")) };
