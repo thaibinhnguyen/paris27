@@ -188,7 +188,8 @@ body{margin:0;min-height:100vh;overscroll-behavior-y:none}
 input,textarea{font-size:16px}
 #login{max-width:420px}
 #login .row2{align-items:center;margin-top:8px}
-.filebtn{position:relative;overflow:hidden}
+.filebtn{position:relative;overflow:hidden;display:inline-flex;align-items:center;cursor:pointer;line-height:1.5}
+.acct{align-items:center}
 .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
 </style>
 </head>
@@ -486,7 +487,7 @@ function vTools(){
   <div class="section"><h2>${serif(t("conv2"))}</h2><div class="card"><div class="grid2"><label class="lbl">km/h<span class="field"><input id="ts" inputmode="decimal" value="10.3"></span></label>${out("tso",t("pace")+" (/km)")}</div></div></div>
   <div class="section"><h2>${serif(t("calc"))}</h2><div class="card"><div class="grid2"><label class="lbl">${t("distance")}<span class="field"><input id="cd" inputmode="decimal" value="5"></span></label><label class="lbl">${t("time")}<span class="field"><input id="ct" inputmode="numeric" value="27:00"></span></label>${out("co",t("pace")+" (/km)")}${out("co2","km/h")}</div></div></div>
   <div class="section"><h2>${serif(t("exp"))}</h2><p class="empty">${t("expNote")}</p><div><button class="btn" type="button" id="export" ${downloads?"":"hidden"}>${t("expBtn")}</button></div><p class="save" id="expmsg"></p></div>
-  <div class="section"><h2>${serif(t("account"))}</h2><p class="empty">${t("restoreNote")}</p><div class="row2"><button class="btn" type="button" id="backup">${t("backup")}</button><label class="linkbtn filebtn">${t("restore")}<input type="file" id="restore" accept="application/json,.json"></label><button class="linkbtn mute" type="button" id="signout">${t("signOut")}</button></div><p class="save" id="accmsg">${esc(S.accMsg||"")}</p></div>`;
+  <div class="section"><h2>${serif(t("account"))}</h2><p class="empty">${t("restoreNote")}</p><div class="row2 acct"><button class="btn" type="button" id="backup">${t("backup")}</button><label class="linkbtn filebtn">${t("restore")}<input type="file" id="restore" accept="application/json,.json"></label><button class="linkbtn mute" type="button" id="signout">${t("signOut")}</button></div><p class="save" id="accmsg">${esc(S.accMsg||"")}</p></div>`;
   tools();
 }
 function tools(){
