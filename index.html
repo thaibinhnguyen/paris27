@@ -262,6 +262,8 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const DAY=864e5;
 function parseISO(s){const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}
 function midnight(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+// iPhone number pad has no ":", so time fields take digits and the colons are inserted from the right: 4530 -> 45:30, 10512 -> 1:05:12
+function maskTime(v){const d=String(v).replace(/\D/g,"").slice(0,6);if(d.length<3)return d;const g=[];for(let i=d.length;i>0;i-=2)g.unshift(d.slice(Math.max(0,i-2),i));return g.join(":")}
 function secs(str){if(str==null)return null;const p=String(str).trim().split(":").map(Number);if(!p.length||p.some(isNaN)||String(str).trim()==="")return null;return p.reduce((a,b)=>a*60+b,0)}
 function fmt(s){if(s==null||!isFinite(s))return"–";s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return(h?h+":"+String(m).padStart(2,"0"):m)+":"+String(x).padStart(2,"0")}
 function fmtNum(n,d=1){return n==null?"–":(Math.round(n*10**d)/10**d).toLocaleString(lang==="fr"?"fr-FR":"en-GB")}
@@ -385,13 +387,13 @@ function vDay(){
   if(runSessionish(day)){
     const r=log.run||{}; const p=r.km&&secs(r.time)?secs(r.time)/Number(r.km):null;
     h+=`<div class="card"><span class="eyebrow">${t("run")}</span><div class="grid2"><label>${t("distance")}<span class="field"><input id="rk-${id}" inputmode="decimal" data-run="km" value="${r.km??""}" placeholder="${day.km||""}"></span></label>
-      <label>${t("time")}<span class="field"><input id="rt-${id}" inputmode="numeric" data-run="time" value="${esc(r.time??"")}" placeholder="0:00"></span></label></div>
+      <label>${t("time")}<span class="field"><input id="rt-${id}" inputmode="numeric" data-time data-run="time" value="${esc(r.time??"")}" placeholder="0:00"></span></label></div>
       <div class="stack" style="gap:8px"><span class="eyebrow">${t("pace")}</span><span class="metric num" id="pace">${p?fmt(p)+"/km":"–"}</span></div>
-      ${isTest(day)?`<label class="lbl">${t("test5k")}<span class="field"><input id="t5-${id}" inputmode="numeric" data-test="1" value="${esc(log.test5k??"")}" placeholder="27:00"></span></label>`:""}</div>`;
+      ${isTest(day)?`<label class="lbl">${t("test5k")}<span class="field"><input id="t5-${id}" inputmode="numeric" data-time data-test="1" value="${esc(log.test5k??"")}" placeholder="27:00"></span></label>`:""}</div>`;
   }
   if(stationish(day)){
     const st=log.stations||{};
-    h+=`<div class="card"><span class="eyebrow">${t("stations")}</span><div class="grid2">${STATIONS.map(n=>`<label>${n}<span class="field"><input id="st-${id}-${n.replace(/\W/g,"")}" inputmode="numeric" data-station="${n}" value="${esc(st[n]??"")}" placeholder="0:00"></span></label>`).join("")}</div></div>`;
+    h+=`<div class="card"><span class="eyebrow">${t("stations")}</span><div class="grid2">${STATIONS.map(n=>`<label>${n}<span class="field"><input id="st-${id}-${n.replace(/\W/g,"")}" inputmode="numeric" data-time data-station="${n}" value="${esc(st[n]??"")}" placeholder="0:00"></span></label>`).join("")}</div></div>`;
   }
   h+=`<div class="card"><span class="eyebrow">${t("notes")}</span><textarea id="nt-${id}" data-notes="1" placeholder="${t("notesPh")}">${esc(log.notes||"")}</textarea></div></div>`;
   V.innerHTML=h;
@@ -486,9 +488,9 @@ function vProgress(){
 
 function vTools(){
   const out=(id,lab)=>`<div class="lbl"><span>${lab}</span><output class="readout num" id="${id}" aria-live="polite"></output></div>`;
-  V.innerHTML=`<div class="section"><h2>${serif(t("conv"))}</h2><div class="card"><div class="grid2"><label class="lbl">${t("pace")} (m:ss/km)<span class="field"><input id="tp" inputmode="numeric" value="5:50"></span></label>${out("tpo","km/h")}</div></div></div>
+  V.innerHTML=`<div class="section"><h2>${serif(t("conv"))}</h2><div class="card"><div class="grid2"><label class="lbl">${t("pace")} (m:ss/km)<span class="field"><input id="tp" inputmode="numeric" data-time value="5:50"></span></label>${out("tpo","km/h")}</div></div></div>
   <div class="section"><h2>${serif(t("conv2"))}</h2><div class="card"><div class="grid2"><label class="lbl">km/h<span class="field"><input id="ts" inputmode="decimal" value="10.3"></span></label>${out("tso",t("pace")+" (/km)")}</div></div></div>
-  <div class="section"><h2>${serif(t("calc"))}</h2><div class="card"><div class="grid2"><label class="lbl">${t("distance")}<span class="field"><input id="cd" inputmode="decimal" value="5"></span></label><label class="lbl">${t("time")}<span class="field"><input id="ct" inputmode="numeric" value="27:00"></span></label>${out("co",t("pace")+" (/km)")}${out("co2","km/h")}</div></div></div>
+  <div class="section"><h2>${serif(t("calc"))}</h2><div class="card"><div class="grid2"><label class="lbl">${t("distance")}<span class="field"><input id="cd" inputmode="decimal" value="5"></span></label><label class="lbl">${t("time")}<span class="field"><input id="ct" inputmode="numeric" data-time value="27:00"></span></label>${out("co",t("pace")+" (/km)")}${out("co2","km/h")}</div></div></div>
   <div class="section"><h2>${serif(t("exp"))}</h2><p class="empty">${t("expNote")}</p><div><button class="btn" type="button" id="export" ${downloads?"":"hidden"}>${t("expBtn")}</button></div><p class="save" id="expmsg"></p></div>
   <div class="section"><h2>${serif(t("account"))}</h2><p class="empty">${t("restoreNote")}</p><div class="row2 acct"><button class="btn" type="button" id="backup">${t("backup")}</button><label class="linkbtn filebtn">${t("restore")}<input type="file" id="restore" accept="application/json,.json"></label><button class="linkbtn mute" type="button" id="signout">${t("signOut")}</button></div><p class="save" id="accmsg">${esc(S.accMsg||"")}</p></div>`;
   tools();
@@ -523,6 +525,7 @@ document.addEventListener("click",e=>{
 function liftRows(id,w,d,i){const l=editable(id);if(!l.lifts[i]){const it=dayData(w,d).items[+i];l.lifts[i]=expand(it).map(p=>({kg:p.kg,reps:p.reps,done:false}))}return l.lifts[i]}
 document.addEventListener("input",e=>{
   const el=e.target;if(el.closest(".nz"))return;
+  if(el.dataset.time!==undefined)el.value=maskTime(el.value);
   if(["tp","ts","cd","ct"].includes(el.id)){tools();return}
   if(!S.sel)return;const {w,d}=S.sel,id=idOf(w,d);
   const num=v=>{const x=parseFloat(String(v).replace(",","."));return isNaN(x)?null:x};
