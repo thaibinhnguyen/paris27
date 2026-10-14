@@ -295,7 +295,11 @@ function expand(item){const out=[];for(const b of item.blocks)for(let i=0;i<b.se
 function logOf(id){return S.logs[id]||{}}
 function editable(id){if(!S.logs[id])S.logs[id]={status:null,notes:"",lifts:{}};const l=S.logs[id];if(!l.lifts)l.lifts={};return l}
 function runSessionish(day){return day.km>0||/course|sortie|z2|run|fractionn|tempo|test/i.test(day.session)}
-function stationish(day){return /station|simulation|sled|affûtage|jour j/i.test(day.session)}
+const STATION_RE={"SkiErg":/skierg/i,"Sled Push":/sled push/i,"Sled Pull":/sled pull|push\/pull/i,"Burpee Broad Jump":/burpee/i,"Rameur / Row":/rameur/i,"Farmers Carry":/farmer/i,"Sandbag Lunges":/sandbag/i,"Wall Balls":/wall ?ball/i};
+function dayText(day){return [day.session,...(day.items||[]).map(it=>it.text||"")].join(" ")}
+// Stations named anywhere in the day (e.g. "technique SkiErg/Rameur" after a run); a generic station day with none named shows all eight
+function dayStations(day){const txt=dayText(day),named=STATIONS.filter(n=>STATION_RE[n].test(txt));if(named.length)return named;return /station|simulation|sled|affûtage|jour j/i.test(day.session)?STATIONS:[]}
+function stationish(day){return dayStations(day).length>0}
 function isTest(day){return /^TEST/i.test(day.session)}
 function statusChip(st,past){if(st)return`<span class="st ${st}">${t(st)}</span>`;return past?`<span class="st">${t("notLogged")}</span>`:""}
 function serif(s){s=esc(s);let m=s.match(/^(.+?)\s+→\s+(.+)$/);if(m)return`${m[1]} → <em>${m[2]}</em>`;m=s.match(/^(.+?)\s+[–—]\s+(.+)$/);if(m)return`${m[1]} <em>${m[2]}</em>`;m=s.match(/^(.+?)\s+(\(.+\))$/);if(m)return`${m[1]} <em>${m[2]}</em>`;m=s.match(/^(.+?)\s+(\+\s.+)$/);if(m)return`${m[1]} <em>${m[2]}</em>`;return s}
@@ -393,7 +397,7 @@ function vDay(){
   }
   if(stationish(day)){
     const st=log.stations||{};
-    h+=`<div class="card"><span class="eyebrow">${t("stations")}</span><div class="grid2">${STATIONS.map(n=>`<label>${n}<span class="field"><input id="st-${id}-${n.replace(/\W/g,"")}" inputmode="numeric" data-time data-station="${n}" value="${esc(st[n]??"")}" placeholder="0:00"></span></label>`).join("")}</div></div>`;
+    h+=`<div class="card"><span class="eyebrow">${t("stations")}</span><div class="grid2">${dayStations(day).map(n=>`<label>${n}<span class="field"><input id="st-${id}-${n.replace(/\W/g,"")}" inputmode="numeric" data-time data-station="${n}" value="${esc(st[n]??"")}" placeholder="0:00"></span></label>`).join("")}</div></div>`;
   }
   h+=`<div class="card"><span class="eyebrow">${t("notes")}</span><textarea id="nt-${id}" data-notes="1" placeholder="${t("notesPh")}">${esc(log.notes||"")}</textarea></div></div>`;
   V.innerHTML=h;
