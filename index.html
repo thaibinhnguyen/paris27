@@ -286,7 +286,8 @@ async function ciFlush(k){
 }
 function scale(attr,key,n,val){return`<div class="scale${n>5?" scale10":""}" role="group" aria-label="${key}">${Array.from({length:n},(_,i)=>i+1).map(v=>`<button type="button" ${attr}="${key}" data-v="${v}" aria-pressed="${val===v}">${v}</button>`).join("")}</div>`}
 
-function dateOf(w,d){return new Date(parseISO(S.meta.start).getTime()+((w-1)*7+d)*DAY)}
+// Calendar arithmetic, not 24 h steps: the switch to winter time (25/10) would otherwise land on 23:00 the day before.
+function dateOf(w,d){const x=parseISO(S.meta.start);x.setDate(x.getDate()+(w-1)*7+d);return x}
 function idOf(w,d){return "w"+String(w).padStart(2,"0")+"-d"+d}
 function todayIdx(){if(!S.meta)return{w:1,d:0};const n=Math.round((midnight(new Date())-parseISO(S.meta.start))/DAY);const c=Math.max(0,Math.min(27*7-1,n));return{w:Math.floor(c/7)+1,d:c%7,before:n<0,raw:n}}
 function weekData(w){return S.weeks["w"+String(w).padStart(2,"0")]}
@@ -476,7 +477,7 @@ function vProgress(){
   if(!cis.length)h+=`<p class="empty">${t("noCheckin")}</p>`;
   else{
     // Last 21 days, two aligned charts on one day axis: sleep (h) on top, session RPE below. Days with < 6 h then RPE >= 9 are flagged.
-    const t0=midnight(new Date()),N=Math.max(7,Math.min(21,Math.round((t0-parseISO(S.meta.start))/DAY)+1)),days=[];for(let i=N-1;i>=0;i--){const dt=new Date(t0.getTime()-i*DAY),k=ymd(dt),n=Math.round((dt-parseISO(S.meta.start))/DAY);const c=S.checkins[k]||{};const l=n>=0&&n<189?logOf(idOf(Math.floor(n/7)+1,n%7)):{};
+    const t0=midnight(new Date()),N=Math.max(7,Math.min(21,Math.round((t0-parseISO(S.meta.start))/DAY)+1)),days=[];for(let i=N-1;i>=0;i--){const dt=new Date(t0);dt.setDate(t0.getDate()-i);const k=ymd(dt),n=Math.round((dt-parseISO(S.meta.start))/DAY);const c=S.checkins[k]||{};const l=n>=0&&n<189?logOf(idOf(Math.floor(n/7)+1,n%7)):{};
       const sl=c.sleepH!=null&&c.sleepH!==""?+c.sleepH:null,r=l.rpe!=null&&l.rpe!==""?+l.rpe:null;days.push({dt,sl,r,flag:sl!=null&&r!=null&&sl<6&&r>=9})}
     const W2=560,pl=30,pr=6,bw=(W2-pl-pr)/N,X=i=>pl+i*bw+2,Hs=110,Hr=100,pb=24;
     const bars=(H,max,ref,get,lab)=>{const y=v=>8+(H-16)*(1-v/max);let g=`<line x1="${pl}" x2="${W2-pr}" y1="${y(0)}" y2="${y(0)}" stroke="var(--taupe)"/><line x1="${pl}" x2="${W2-pr}" y1="${y(ref)}" y2="${y(ref)}" stroke="var(--ash)" stroke-dasharray="5 4"/><text x="${pl-5}" y="${y(ref)+5}" text-anchor="end">${ref}</text>`;
