@@ -221,7 +221,7 @@ const T={
   test5k:"5 km test time (mm:ss)",stations:"Station times (mm:ss)",notes:"Notes",notesPh:"How it felt, changes, anything to remember",saved:"Saved",saving:"Saving…",unsaved:"Not saved. Check your connection.",
   daysLeft:"days to race",kmPlan:"km planned",kmDone:"km done",sessions:"sessions done",loading:"Loading your plan…",noDb:"Your training data could not load. Check your connection and reopen the app.",
   emptyPlan:"No plan yet. Restore your backup in Tools → Restore (JSON).",before:"Plan starts",tests:"5 km tests",target:"Target",result:"Result",
-  weeklyKm:"Weekly running volume",strength:"Estimated 1RM (Epley)",start:"Start",best:"Best logged",stationTimes:"Station times",adherence:"Sessions so far",
+  weeklyKm:"Weekly running volume",strength:"Estimated 1RM (Epley)",start:"Start",best:"Best logged",stationTimes:"Station times",adherence:"Sessions so far",daysShort:"days",dayVal:"Value for the day",flagLegend:"Under 6 h of sleep and RPE 9+",
   conv:"Pace → treadmill speed",conv2:"Treadmill speed → pace",calc:"Distance + time → pace",exp:"Export",expBtn:"Download log (CSV)",expNote:"A backup of everything you logged. Claude reads the live data directly, so you do not need to send it.",
   frNote:"Coaching notes stay in French.",checkin:"Morning check-in",weight:"Weight",sleepH:"Sleep",sleepQ:"Sleep quality",sleepQHint:"1 poor · 5 great",fatigue:"Fatigue",fatigueHint:"1 fresh · 5 exhausted",soreness:"Soreness",sorenessHint:"1 none · 5 strong",rpe:"Session effort (RPE)",rpeHint:"1 easy · 10 max",coach:"Coach review",adjust:"Changes this week",recovery:"Recovery",avg7:"7-day average",noCheckin:"Log a morning check-in on the Today screen to see your weight and recovery trends.",dShort:"D-",brief:"Session brief",gap:"vs plan",of:"of",perHand:"kg/hand",kg:"kg",reps:"reps",openWeek:"Open week",now:"Now",
   dn:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],dl:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],exportFail:"Download was not completed.",
@@ -231,7 +231,7 @@ const T={
   test5k:"Temps du test 5 km (mm:ss)",stations:"Temps par station (mm:ss)",notes:"Notes",notesPh:"Ressenti, changements, à retenir",saved:"Enregistré",saving:"Enregistrement…",unsaved:"Non enregistré. Vérifiez la connexion.",
   daysLeft:"jours avant la course",kmPlan:"km prévus",kmDone:"km faits",sessions:"séances faites",loading:"Chargement du plan…",noDb:"Impossible de charger vos données. Vérifiez la connexion et rouvrez l'app.",
   emptyPlan:"Aucun plan pour l'instant. Restaurez votre sauvegarde dans Outils → Restaurer (JSON).",before:"Début du plan",tests:"Tests 5 km",target:"Objectif",result:"Résultat",
-  weeklyKm:"Volume de course par semaine",strength:"1RM estimé (Epley)",start:"Départ",best:"Meilleur saisi",stationTimes:"Temps par station",adherence:"Séances à ce jour",
+  weeklyKm:"Volume de course par semaine",strength:"1RM estimé (Epley)",start:"Départ",best:"Meilleur saisi",stationTimes:"Temps par station",adherence:"Séances à ce jour",daysShort:"jours",dayVal:"Valeur du jour",flagLegend:"Moins de 6 h de sommeil et RPE 9+",
   conv:"Allure → vitesse du tapis",conv2:"Vitesse du tapis → allure",calc:"Distance + temps → allure",exp:"Export",expBtn:"Télécharger le journal (CSV)",expNote:"Une sauvegarde de tout ce que vous avez saisi. Claude lit directement les données, inutile de les envoyer.",
   frNote:"",checkin:"Check-in du matin",weight:"Poids",sleepH:"Sommeil",sleepQ:"Qualité du sommeil",sleepQHint:"1 mauvais · 5 excellent",fatigue:"Fatigue",fatigueHint:"1 frais · 5 épuisé",soreness:"Courbatures",sorenessHint:"1 aucune · 5 fortes",rpe:"Effort de la séance (RPE)",rpeHint:"1 facile · 10 max",coach:"Bilan du coach",adjust:"Ajustements de la semaine",recovery:"Récupération",avg7:"Moyenne 7 jours",noCheckin:"Faites le check-in du matin dans « Aujourd'hui » pour suivre poids et récupération.",dShort:"J-",brief:"Consignes",gap:"vs plan",of:"sur",perHand:"kg/main",kg:"kg",reps:"reps",openWeek:"Ouvrir la semaine",now:"En cours",
   dn:["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"],dl:["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"],exportFail:"Le téléchargement n'a pas abouti.",
@@ -473,13 +473,19 @@ function vProgress(){
   // recovery
   const cis=Object.entries(S.checkins).filter(([k,v])=>/^\d{4}-\d\d-\d\d$/.test(k)).sort((a,b)=>a[0]<b[0]?-1:1);
   h+=`<div class="section"><h2>${serif(t("recovery"))}</h2>`;
-  const wts=cis.filter(([k,v])=>v.weight).map(([k,v])=>({k,v:+v.weight}));
   if(!cis.length)h+=`<p class="empty">${t("noCheckin")}</p>`;
   else{
-    if(wts.length){const last=wts[wts.length-1],first=wts[0];const dlt=last.v-first.v;
-      h+=`<div class="stats" style="grid-template-columns:repeat(2,1fr)"><div class="stat"><div class="metric num">${fmtNum(last.v)}<small>kg</small></div><small>${t("weight")} · ${esc(last.k.slice(5).split("-").reverse().join("/"))}</small></div><div class="stat"><div class="metric num">${dlt>0?"+":""}${fmtNum(dlt)}<small>kg</small></div><small>${t("start")} ${fmtNum(first.v)} kg</small></div></div>`;
-      if(wts.length>1){const W2=560,H2=150,pd=14;let mn=Math.min(...wts.map(x=>x.v))-0.5,mx=Math.max(...wts.map(x=>x.v))+0.5;const X=i=>pd+(W2-2*pd)*i/(wts.length-1),Y=v=>pd+(H2-2*pd)*(1-(v-mn)/(mx-mn));
-        h+=`<div class="card chart"><svg viewBox="0 0 ${W2} ${H2}" role="img" aria-label="${t("weight")}"><polyline fill="none" stroke="var(--seal)" stroke-width="2.5" points="${wts.map((x,i)=>X(i)+","+Y(x.v)).join(" ")}"/>${wts.map((x,i)=>`<circle cx="${X(i)}" cy="${Y(x.v)}" r="${i===wts.length-1?6:3.5}" fill="${i===wts.length-1?"var(--seal)":"var(--paper)"}" stroke="var(--seal)" stroke-width="2"/>`).join("")}</svg></div>`}}
+    // Last 21 days, two aligned charts on one day axis: sleep (h) on top, session RPE below. Days with < 6 h then RPE >= 9 are flagged.
+    const t0=midnight(new Date()),N=Math.max(7,Math.min(21,Math.round((t0-parseISO(S.meta.start))/DAY)+1)),days=[];for(let i=N-1;i>=0;i--){const dt=new Date(t0.getTime()-i*DAY),k=ymd(dt),n=Math.round((dt-parseISO(S.meta.start))/DAY);const c=S.checkins[k]||{};const l=n>=0&&n<189?logOf(idOf(Math.floor(n/7)+1,n%7)):{};
+      const sl=c.sleepH!=null&&c.sleepH!==""?+c.sleepH:null,r=l.rpe!=null&&l.rpe!==""?+l.rpe:null;days.push({dt,sl,r,flag:sl!=null&&r!=null&&sl<6&&r>=9})}
+    const W2=560,pl=30,pr=6,bw=(W2-pl-pr)/N,X=i=>pl+i*bw+2,Hs=110,Hr=100,pb=24;
+    const bars=(H,max,ref,get,lab)=>{const y=v=>8+(H-16)*(1-v/max);let g=`<line x1="${pl}" x2="${W2-pr}" y1="${y(0)}" y2="${y(0)}" stroke="var(--taupe)"/><line x1="${pl}" x2="${W2-pr}" y1="${y(ref)}" y2="${y(ref)}" stroke="var(--ash)" stroke-dasharray="5 4"/><text x="${pl-5}" y="${y(ref)+5}" text-anchor="end">${ref}</text>`;
+      days.forEach((x,i)=>{const v=get(x);if(v==null)return;g+=`<rect x="${X(i)}" y="${y(Math.min(v,max))}" width="${bw-4}" height="${Math.max(2,y(0)-y(Math.min(v,max)))}" rx="2" fill="${x.flag?"var(--seal)":"var(--ash)"}"><title>${x.dt.toLocaleDateString(lang==="fr"?"fr-FR":"en-GB",{day:"numeric",month:"short"})} · ${fmtNum(v)}${lab}</title></rect>`});return g};
+    let sv=`<svg viewBox="0 0 ${W2} ${Hs}" role="img" aria-label="${t("sleepH")}">${bars(Hs,10,7,x=>x.sl," h")}</svg>`;
+    let rv=`<svg viewBox="0 0 ${W2} ${Hr+pb}" role="img" aria-label="RPE">${bars(Hr,10,9,x=>x.r,"/10")}`;
+    days.forEach((x,i)=>{if(i%7===0||i===N-1)rv+=`<text x="${i===N-1?W2-pr:X(i)+(bw-4)/2}" y="${Hr+pb-4}" text-anchor="${i===N-1?"end":"middle"}">${x.dt.getDate()}/${x.dt.getMonth()+1}</text>`});rv+=`</svg>`;
+    h+=`<div class="card chart"><span class="eyebrow">${t("sleepH")} (h) · ${N} ${t("daysShort")}</span>${sv}<span class="eyebrow">${t("rpe")}</span>${rv}</div>
+      <div class="legend"><span><i style="background:var(--ash)"></i>${t("dayVal")}</span><span><i style="background:var(--seal)"></i>${t("flagLegend")}</span></div>`;
     const recent=cis.slice(-7).map(x=>x[1]);const avg=k=>{const v=recent.map(r=>r[k]).filter(x=>x!=null&&x!=="");return v.length?v.reduce((a,b)=>a+ +b,0)/v.length:null};
     h+=`<div class="tablewrap"><table><thead><tr><th>${t("avg7")}</th><th class="r"></th></tr></thead><tbody>${[["sleepH"," h"],["sleepQ","/5"],["fatigue","/5"],["soreness","/5"]].map(([k,u])=>`<tr><td>${t(k)}</td><td class="r">${avg(k)==null?"–":fmtNum(avg(k))+u}</td></tr>`).join("")}</tbody></table></div>`;
   }
