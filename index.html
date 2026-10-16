@@ -217,7 +217,7 @@ input,textarea{font-size:16px}
 // ---------- i18n ----------
 const T={
  en:{today:"Today",week:"Week",plan:"Plan",progress:"Progress",tools:"Tools",nutri:"Food",waist:"Waist",done:"Done",partial:"Partial",missed:"Missed",notLogged:"Not logged",
-  wk:"Week",day:"Day",planned:"Plan",set:"Set",addSet:"+ Add set",removeSet:"Remove last set",run:"Run",distance:"Distance (km)",time:"Time (h:mm:ss)",pace:"Pace",
+  wk:"Week",day:"Day",planned:"Plan",set:"Set",addSet:"+ Add set",removeSet:"Remove last set",run:"Run",paceTarget:"Target pace",tooFast:"Faster than target",tooSlow:"Slower than target",distance:"Distance (km)",time:"Time (h:mm:ss)",pace:"Pace",
   test5k:"5 km test time (mm:ss)",stations:"Station times (mm:ss)",notes:"Notes",notesPh:"How it felt, changes, anything to remember",saved:"Saved",saving:"Saving…",unsaved:"Not saved. Check your connection.",
   daysLeft:"days to race",kmPlan:"km planned",kmDone:"km done",sessions:"sessions done",loading:"Loading your plan…",noDb:"Your training data could not load. Check your connection and reopen the app.",
   emptyPlan:"No plan yet. Restore your backup in Tools → Restore (JSON).",before:"Plan starts",tests:"5 km tests",target:"Target",result:"Result",
@@ -227,7 +227,7 @@ const T={
   dn:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],dl:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],exportFail:"Download was not completed.",
   account:"Account and backup",backup:"Back up (JSON)",restore:"Restore (JSON)",restoreNote:"A JSON backup holds the plan and everything you logged. Restoring adds it to your account and replaces days with the same date.",restored:"entries restored",restoreFail:"This file could not be restored.",signOut:"Sign out",offline:"Saved on the phone. It will sync when the connection is back."},
  fr:{today:"Aujourd'hui",week:"Semaine",plan:"Plan",progress:"Progrès",tools:"Outils",nutri:"Repas",waist:"Tour de taille",done:"Fait",partial:"Partiel",missed:"Manqué",notLogged:"Non saisi",
-  wk:"Semaine",day:"Jour",planned:"Prévu",set:"Série",addSet:"+ Ajouter une série",removeSet:"Retirer la dernière série",run:"Course",distance:"Distance (km)",time:"Temps (h:mm:ss)",pace:"Allure",
+  wk:"Semaine",day:"Jour",planned:"Prévu",set:"Série",addSet:"+ Ajouter une série",removeSet:"Retirer la dernière série",run:"Course",paceTarget:"Allure cible",tooFast:"Plus rapide que la cible",tooSlow:"Plus lente que la cible",distance:"Distance (km)",time:"Temps (h:mm:ss)",pace:"Allure",
   test5k:"Temps du test 5 km (mm:ss)",stations:"Temps par station (mm:ss)",notes:"Notes",notesPh:"Ressenti, changements, à retenir",saved:"Enregistré",saving:"Enregistrement…",unsaved:"Non enregistré. Vérifiez la connexion.",
   daysLeft:"jours avant la course",kmPlan:"km prévus",kmDone:"km faits",sessions:"séances faites",loading:"Chargement du plan…",noDb:"Impossible de charger vos données. Vérifiez la connexion et rouvrez l'app.",
   emptyPlan:"Aucun plan pour l'instant. Restaurez votre sauvegarde dans Outils → Restaurer (JSON).",before:"Début du plan",tests:"Tests 5 km",target:"Objectif",result:"Résultat",
@@ -304,6 +304,9 @@ function stationish(day){return dayStations(day).length>0}
 function isTest(day){return /^TEST/i.test(day.session)}
 function statusChip(st,past){if(st)return`<span class="st ${st}">${t(st)}</span>`;return past?`<span class="st">${t("notLogged")}</span>`:""}
 function serif(s){s=esc(s);let m=s.match(/^(.+?)\s+→\s+(.+)$/);if(m)return`${m[1]} → <em>${m[2]}</em>`;m=s.match(/^(.+?)\s+[–—]\s+(.+)$/);if(m)return`${m[1]} <em>${m[2]}</em>`;m=s.match(/^(.+?)\s+(\(.+\))$/);if(m)return`${m[1]} <em>${m[2]}</em>`;m=s.match(/^(.+?)\s+(\+\s.+)$/);if(m)return`${m[1]} <em>${m[2]}</em>`;return s}
+// day.pace is a target range like "6:15–6:30" (min:sec per km), set by Claude in the weekly review.
+function paceRange(day){if(!day||!day.pace)return null;const p=String(day.pace).split(/[–-]/).map(x=>secs(x.trim()));if(!p[0])return null;return{lo:p[0],hi:p[1]||p[0]}}
+function paceFlag(day,p){const r=paceRange(day);if(!r||!p)return"";return p<r.lo-2?t("tooFast"):p>r.hi+2?t("tooSlow"):""}
 function meta(parts){return`<p class="meta num">${parts.filter(Boolean).map(esc).join('<span class="sep" aria-hidden="true">·</span>')}</p>`}
 function phaseOf(w){return S.meta.phases.find(p=>w>=p.from&&w<=p.to)}
 function weekKm(w){let p=0,a=0;const wk=weekData(w);if(!wk)return{p,a};wk.days.forEach((d,i)=>{p+=d.km||0;const r=logOf(idOf(w,i)).run;if(r&&r.km)a+=Number(r.km)||0});return{p,a}}
@@ -359,7 +362,7 @@ function vDay(){
   const ti=todayIdx(); const isToday=ti.w===w&&ti.d===d&&!ti.before;
   let h=`<div class="dayhead"><div class="stack"><span class="eyebrow num">${isToday?t("today")+" · ":""}${t("dl")[d]} ${date.toLocaleDateString(lang==="fr"?"fr-FR":"en-GB",{day:"numeric",month:"long"})}</span>
    <h1>${serif(tr(day.session,SES))}</h1>
-   ${meta([t("wk")+" "+w,lang==="en"?ph.en:ph.name,tr(wk.type,WT),day.km?fmtNum(day.km)+" km":""])}</div>
+   ${meta([t("wk")+" "+w,lang==="en"?ph.en:ph.name,tr(wk.type,WT),day.km?fmtNum(day.km)+" km":"",day.pace?day.pace+"/km":""])}</div>
    <div class="nav"><button class="iconbtn" type="button" data-nav="-1" aria-label="Previous day">${IC.l}</button><button class="iconbtn" type="button" data-nav="1" aria-label="Next day">${IC.r}</button></div></div>`;
   const dk=ymd(date), ci=S.checkins[dk]||{};
   if(ti.before||(w-1)*7+d<=ti.raw){
@@ -393,7 +396,8 @@ function vDay(){
     const r=log.run||{}; const p=r.km&&secs(r.time)?secs(r.time)/Number(r.km):null;
     h+=`<div class="card"><span class="eyebrow">${t("run")}</span><div class="grid2"><label>${t("distance")}<span class="field"><input id="rk-${id}" inputmode="decimal" data-run="km" value="${r.km??""}" placeholder="${day.km||""}"></span></label>
       <label>${t("time")}<span class="field"><input id="rt-${id}" inputmode="numeric" data-time data-run="time" value="${esc(r.time??"")}" placeholder="0:00"></span></label></div>
-      <div class="stack" style="gap:8px"><span class="eyebrow">${t("pace")}</span><span class="metric num" id="pace">${p?fmt(p)+"/km":"–"}</span></div>
+      <div class="grid2"><div class="stack" style="gap:8px"><span class="eyebrow">${t("pace")}</span><span class="metric num" id="pace">${p?fmt(p)+"/km":"–"}</span><small class="textitem dim" id="paceflag">${paceFlag(day,p)}</small></div>
+      ${day.pace?`<div class="stack" style="gap:8px"><span class="eyebrow">${t("paceTarget")}</span><span class="metric num">${esc(day.pace)}</span><small class="textitem dim">/km</small></div>`:""}</div>
       ${isTest(day)?`<label class="lbl">${t("test5k")}<span class="field"><input id="t5-${id}" inputmode="numeric" data-time data-test="1" value="${esc(log.test5k??"")}" placeholder="27:00"></span></label>`:""}</div>`;
   }
   if(stationish(day)){
@@ -422,7 +426,7 @@ function vWeek(){
    <div class="section"><div class="list">`;
   wk.days.forEach((d,i)=>{const id=idOf(w,i),l=logOf(id),dt=dateOf(w,i);const past=(w-1)*7+i<ti.raw;const cur=ti.w===w&&ti.d===i&&!ti.before;
     const r=l.run&&l.run.km?`${fmtNum(Number(l.run.km),2)} km`:(d.km?`${fmtNum(d.km)} km`:"");
-    h+=`<button type="button" class="li${cur?" today":""}" data-open="${w}:${i}"><span class="d num">${t("dn")[i]}<b>${dt.getDate()}</b></span><span class="s">${esc(tr(d.session,SES))}<small class="num">${r}</small></span>${statusChip(l.status,past)}</button>`});
+    h+=`<button type="button" class="li${cur?" today":""}" data-open="${w}:${i}"><span class="d num">${t("dn")[i]}<b>${dt.getDate()}</b></span><span class="s">${esc(tr(d.session,SES))}<small class="num">${[r,d.pace?d.pace+"/km":""].filter(Boolean).join(" · ")}</small></span>${statusChip(l.status,past)}</button>`});
   h+=`</div></div>`;V.innerHTML=h;
 }
 
@@ -543,7 +547,7 @@ document.addEventListener("input",e=>{
   if(el.dataset.ci){const k=ymd(dateOf(w,d)),c=ciEdit(k);c[el.dataset.ci]=num(el.value);ciSave(k);return}
   if(el.dataset.lift!==undefined){const rows=liftRows(id,w,d,el.dataset.lift);rows[+el.dataset.s][el.dataset.f]=num(el.value);scheduleSave(id);return}
   const l=editable(id);
-  if(el.dataset.run){l.run=l.run||{};l.run[el.dataset.run]=el.dataset.run==="km"?num(el.value):el.value.trim();const p=l.run.km&&secs(l.run.time)?secs(l.run.time)/l.run.km:null;const pe=document.getElementById("pace");if(pe)pe.textContent=p?fmt(p)+"/km":"–";scheduleSave(id);return}
+  if(el.dataset.run){l.run=l.run||{};l.run[el.dataset.run]=el.dataset.run==="km"?num(el.value):el.value.trim();const p=l.run.km&&secs(l.run.time)?secs(l.run.time)/l.run.km:null;const pe=document.getElementById("pace");if(pe)pe.textContent=p?fmt(p)+"/km":"–";const pf=document.getElementById("paceflag");if(pf)pf.textContent=paceFlag(dayData(w,d),p);scheduleSave(id);return}
   if(el.dataset.test){l.test5k=el.value.trim();scheduleSave(id);return}
   if(el.dataset.station){l.stations=l.stations||{};l.stations[el.dataset.station]=el.value.trim();scheduleSave(id);return}
   if(el.dataset.notes){l.notes=el.value;scheduleSave(id);return}
