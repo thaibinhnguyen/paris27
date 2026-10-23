@@ -411,8 +411,11 @@ function vDay(){
 function reviewCards(w){
   const key=n=>"w"+String(n).padStart(2,"0");let h="";
   const prev=S.reviews[key(w-1)], cur=S.reviews[key(w)];
-  if(prev&&prev.changes&&prev.changes.length)h+=`<div class="section"><div class="card"><span class="eyebrow">${t("adjust")}</span><div class="brief">${prev.changes.map(c=>`<p class="textitem">${esc(c)}</p>`).join("")}</div></div></div>`;
-  if(cur&&cur.text)h+=`<div class="section"><div class="card"><span class="eyebrow">${t("coach")}${cur.date?" · "+esc(cur.date):""}</span><p class="textitem">${esc(cur.text)}</p></div></div>`;
+  // review text/changes may be a plain value or {fr,en}; pick the display language
+  const loc=v=>v&&typeof v==="object"&&!Array.isArray(v)?(v[lang]??v.fr??v.en):v;
+  const chg=prev&&loc(prev.changes), txt=cur&&loc(cur.text);
+  if(chg&&chg.length)h+=`<div class="section"><div class="card"><span class="eyebrow">${t("adjust")}</span><div class="brief">${chg.map(c=>`<p class="textitem">${esc(c)}</p>`).join("")}</div></div></div>`;
+  if(txt)h+=`<div class="section"><div class="card"><span class="eyebrow">${t("coach")}${cur.date?" · "+esc(cur.date):""}</span><p class="textitem">${esc(txt)}</p></div></div>`;
   return h}
 function vWeek(){
   const w=S.selWeek, wk=weekData(w); if(!wk)return;
