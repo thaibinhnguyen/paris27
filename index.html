@@ -413,7 +413,7 @@ function reviewCards(w){
   const prev=S.reviews[key(w-1)], cur=S.reviews[key(w)];
   // review text/changes may be a plain value or {fr,en}; pick the display language
   const loc=v=>v&&typeof v==="object"&&!Array.isArray(v)?(v[lang]??v.fr??v.en):v;
-  const chg=prev&&loc(prev.changes), txt=cur&&loc(cur.text);
+  const c0=prev&&loc(prev.changes), chg=c0?[].concat(c0):null, txt=cur&&loc(cur.text);
   if(chg&&chg.length)h+=`<div class="section"><div class="card"><span class="eyebrow">${t("adjust")}</span><div class="brief">${chg.map(c=>`<p class="textitem">${esc(c)}</p>`).join("")}</div></div></div>`;
   if(txt)h+=`<div class="section"><div class="card"><span class="eyebrow">${t("coach")}${cur.date?" · "+esc(cur.date):""}</span><p class="textitem">${esc(txt)}</p></div></div>`;
   return h}
