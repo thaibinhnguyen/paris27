@@ -115,6 +115,18 @@ h2{font-family:var(--serif);font-weight:400;font-size:26px;line-height:1.1;lette
 .textitem{font-size:15px;color:var(--charcoal);margin:0;white-space:pre-wrap}
 .textitem.dim{color:var(--graphite);font-size:14px}
 .brief{border-left:1.5px solid var(--seal);padding-left:14px;display:flex;flex-direction:column;gap:8px}
+/* session notes sheet: bottom sheet opened from the brief card */
+.guidebtn{align-self:flex-start;border:1px solid var(--seal);background:transparent;color:var(--seal);font-weight:600;font-size:14px;border-radius:9999px;padding:9px 18px}
+dialog.sheet{border:0;padding:0;margin:auto auto 0;width:100%;max-width:640px;max-height:85vh;background:var(--paper);color:var(--charcoal);border-radius:24px 24px 0 0}
+dialog.sheet::backdrop{background:rgba(20,18,15,.45)}
+.sheet .sh{position:sticky;top:0;background:var(--paper);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 20px 12px;border-bottom:1px solid var(--taupe)}
+.sheet .sh h2{font-family:var(--serif);font-weight:400;font-size:28px;line-height:1.1;margin:6px 0 0;color:var(--ink)}
+.sheet .sb{padding:8px 20px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column}
+.sheet .gh{font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--seal);margin:18px 0 4px}
+.sheet .gr{display:grid;grid-template-columns:minmax(96px,38%) 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--taupe);font-size:15px}
+.sheet .gr b{font-weight:600;color:var(--ink)}
+.sheet .gp{font-size:15px;margin:10px 0 0;white-space:pre-wrap}
+.sheet .gw{font-size:15px;margin:10px 0 0;padding:10px 14px;border-radius:14px;background:var(--seal-wash);color:var(--ink)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .grid2{align-items:start}
 .field{min-height:48px}
@@ -223,7 +235,7 @@ const T={
   emptyPlan:"No plan yet. Restore your backup in Tools → Restore (JSON).",before:"Plan starts",tests:"5 km tests",target:"Target",result:"Result",
   weeklyKm:"Weekly running volume",strength:"Estimated 1RM (Epley)",start:"Start",best:"Best logged",stationTimes:"Station times",adherence:"Sessions so far",daysShort:"days",dayVal:"Value for the day",flagLegend:"Under 6 h of sleep and RPE 9+",
   conv:"Pace → treadmill speed",conv2:"Treadmill speed → pace",calc:"Distance + time → pace",exp:"Export",expBtn:"Download log (CSV)",expNote:"A backup of everything you logged. Claude reads the live data directly, so you do not need to send it.",
-  frNote:"Coaching notes stay in French.",checkin:"Morning check-in",weight:"Weight",sleepH:"Sleep",sleepQ:"Sleep quality",sleepQHint:"1 poor · 5 great",fatigue:"Fatigue",fatigueHint:"1 fresh · 5 exhausted",soreness:"Soreness",sorenessHint:"1 none · 5 strong",rpe:"Session effort (RPE)",rpeHint:"1 easy · 10 max",coach:"Coach review",adjust:"Changes this week",recovery:"Recovery",avg7:"7-day average",noCheckin:"Log a morning check-in on the Today screen to see your weight and recovery trends.",dShort:"D-",brief:"Session brief",gap:"vs plan",of:"of",perHand:"kg/hand",kg:"kg",reps:"reps",openWeek:"Open week",now:"Now",
+  frNote:"Coaching notes stay in French.",checkin:"Morning check-in",weight:"Weight",sleepH:"Sleep",sleepQ:"Sleep quality",sleepQHint:"1 poor · 5 great",fatigue:"Fatigue",fatigueHint:"1 fresh · 5 exhausted",soreness:"Soreness",sorenessHint:"1 none · 5 strong",rpe:"Session effort (RPE)",rpeHint:"1 easy · 10 max",coach:"Coach review",adjust:"Changes this week",recovery:"Recovery",avg7:"7-day average",noCheckin:"Log a morning check-in on the Today screen to see your weight and recovery trends.",dShort:"D-",brief:"Session brief",guideOpen:"Full session notes",close:"Close",gap:"vs plan",of:"of",perHand:"kg/hand",kg:"kg",reps:"reps",openWeek:"Open week",now:"Now",
   dn:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],dl:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],exportFail:"Download was not completed.",
   account:"Account and backup",backup:"Back up (JSON)",restore:"Restore (JSON)",restoreNote:"A JSON backup holds the plan and everything you logged. Restoring adds it to your account and replaces days with the same date.",restored:"entries restored",restoreFail:"This file could not be restored.",signOut:"Sign out",offline:"Saved on the phone. It will sync when the connection is back."},
  fr:{today:"Aujourd'hui",week:"Semaine",plan:"Plan",progress:"Progrès",tools:"Outils",nutri:"Repas",waist:"Tour de taille",done:"Fait",partial:"Partiel",missed:"Manqué",notLogged:"Non saisi",
@@ -233,7 +245,7 @@ const T={
   emptyPlan:"Aucun plan pour l'instant. Restaurez votre sauvegarde dans Outils → Restaurer (JSON).",before:"Début du plan",tests:"Tests 5 km",target:"Objectif",result:"Résultat",
   weeklyKm:"Volume de course par semaine",strength:"1RM estimé (Epley)",start:"Départ",best:"Meilleur saisi",stationTimes:"Temps par station",adherence:"Séances à ce jour",daysShort:"jours",dayVal:"Valeur du jour",flagLegend:"Moins de 6 h de sommeil et RPE 9+",
   conv:"Allure → vitesse du tapis",conv2:"Vitesse du tapis → allure",calc:"Distance + temps → allure",exp:"Export",expBtn:"Télécharger le journal (CSV)",expNote:"Une sauvegarde de tout ce que vous avez saisi. Claude lit directement les données, inutile de les envoyer.",
-  frNote:"",checkin:"Check-in du matin",weight:"Poids",sleepH:"Sommeil",sleepQ:"Qualité du sommeil",sleepQHint:"1 mauvais · 5 excellent",fatigue:"Fatigue",fatigueHint:"1 frais · 5 épuisé",soreness:"Courbatures",sorenessHint:"1 aucune · 5 fortes",rpe:"Effort de la séance (RPE)",rpeHint:"1 facile · 10 max",coach:"Bilan du coach",adjust:"Ajustements de la semaine",recovery:"Récupération",avg7:"Moyenne 7 jours",noCheckin:"Faites le check-in du matin dans « Aujourd'hui » pour suivre poids et récupération.",dShort:"J-",brief:"Consignes",gap:"vs plan",of:"sur",perHand:"kg/main",kg:"kg",reps:"reps",openWeek:"Ouvrir la semaine",now:"En cours",
+  frNote:"",checkin:"Check-in du matin",weight:"Poids",sleepH:"Sommeil",sleepQ:"Qualité du sommeil",sleepQHint:"1 mauvais · 5 excellent",fatigue:"Fatigue",fatigueHint:"1 frais · 5 épuisé",soreness:"Courbatures",sorenessHint:"1 aucune · 5 fortes",rpe:"Effort de la séance (RPE)",rpeHint:"1 facile · 10 max",coach:"Bilan du coach",adjust:"Ajustements de la semaine",recovery:"Récupération",avg7:"Moyenne 7 jours",noCheckin:"Faites le check-in du matin dans « Aujourd'hui » pour suivre poids et récupération.",dShort:"J-",brief:"Consignes",guideOpen:"Voir toutes les consignes",close:"Fermer",gap:"vs plan",of:"sur",perHand:"kg/main",kg:"kg",reps:"reps",openWeek:"Ouvrir la semaine",now:"En cours",
   dn:["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"],dl:["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"],exportFail:"Le téléchargement n'a pas abouti.",
   account:"Compte et sauvegarde",backup:"Sauvegarder (JSON)",restore:"Restaurer (JSON)",restoreNote:"Une sauvegarde JSON contient le plan et tout ce que vous avez saisi. La restaurer l'ajoute à votre compte et remplace les jours de même date.",restored:"éléments restaurés",restoreFail:"Ce fichier n'a pas pu être restauré.",signOut:"Se déconnecter",offline:"Enregistré sur le téléphone. Synchronisation au retour du réseau."}
 };
@@ -301,6 +313,20 @@ function dayText(day){return [day.session,...(day.items||[]).map(it=>it.text||""
 // Stations named anywhere in the day (e.g. "technique SkiErg/Rameur" after a run); a generic station day with none named shows all eight
 function dayStations(day){const txt=dayText(day),named=STATIONS.filter(n=>STATION_RE[n].test(txt));if(named.length)return named;return /station|simulation|sled|affûtage|jour j/i.test(day.session)?STATIONS:[]}
 function stationish(day){return dayStations(day).length>0}
+const BRIEF_MAX=3;
+// day.guide: optional detailed notes. Array, or {fr:[...],en:[...]}. Each entry is a string, {h:"Section"}, {k:"label",v:"value"} or {warn:"text"}.
+function guideOf(day){const g=day&&day.guide;if(!g)return[];if(Array.isArray(g))return g;return g[lang]||g.fr||g.en||[]}
+function guideHTML(day){
+  const rows=[...day.items.filter(it=>it.t!=="lift").map(it=>it.text),...guideOf(day)];
+  return rows.map(r=>{if(typeof r==="string")return`<p class="gp">${esc(r)}</p>`;
+    if(r.h)return`<div class="gh">${esc(r.h)}</div>`;
+    if(r.warn)return`<p class="gw">${esc(r.warn)}</p>`;
+    if(r.k)return`<div class="gr"><b>${esc(r.k)}</b><span>${esc(r.v||"")}</span></div>`;return""}).join("")}
+function openGuide(){const {w,d}=S.sel,day=dayData(w,d);if(!day)return;let dl=document.getElementById("guide");
+  if(!dl){dl=document.createElement("dialog");dl.id="guide";dl.className="sheet";document.body.appendChild(dl);
+    dl.addEventListener("click",e=>{if(e.target===dl||e.target.closest("[data-guideclose]"))dl.close()})}
+  dl.innerHTML=`<div class="sh"><div><span class="eyebrow">${t("brief")}</span><h2>${esc(tr(day.session,SES))}</h2></div><button type="button" class="iconbtn" data-guideclose="1" aria-label="${t("close")}">×</button></div><div class="sb">${guideHTML(day)}</div>`;
+  dl.showModal()}
 function isTest(day){return /^TEST/i.test(day.session)}
 function statusChip(st,past){if(st)return`<span class="st ${st}">${t(st)}</span>`;return past?`<span class="st">${t("notLogged")}</span>`:""}
 function serif(s){s=esc(s);let m=s.match(/^(.+?)\s+→\s+(.+)$/);if(m)return`${m[1]} → <em>${m[2]}</em>`;m=s.match(/^(.+?)\s+[–—]\s+(.+)$/);if(m)return`${m[1]} <em>${m[2]}</em>`;m=s.match(/^(.+?)\s+(\(.+\))$/);if(m)return`${m[1]} <em>${m[2]}</em>`;m=s.match(/^(.+?)\s+(\+\s.+)$/);if(m)return`${m[1]} <em>${m[2]}</em>`;return s}
@@ -374,8 +400,14 @@ function vDay(){
   }
   h+=`<div class="section"><div class="seg" role="group" aria-label="Status">${["done","partial","missed"].map(v=>`<button type="button" data-status="${v}" data-v="${v}" aria-pressed="${log.status===v}">${t(v)}</button>`).join("")}</div>${day.session!=="Repos"?`<div class="lbl"><span>${t("rpe")} <small>${t("rpeHint")}</small></span>${scale("data-rpe","rpe",10,log.rpe)}</div>`:""}<div class="save" id="save" aria-live="polite">${saveState?t(saveState):""}</div></div>`;
   h+=`<div class="stack">`;
-  let textBuf=[];
-  const flushText=()=>{if(textBuf.length){h+=`<div class="card"><span class="eyebrow">${t("brief")}</span><div class="brief">${textBuf.map(x=>`<p class="textitem">${esc(x)}</p>`).join("")}</div>${lang==="en"&&t("frNote")?`<p class="textitem dim">${t("frNote")}</p>`:""}</div>`;textBuf=[]}};
+  let textBuf=[],guideShown=false;
+  const gd=guideOf(day), allText=day.items.filter(it=>it.t!=="lift").map(it=>it.text);
+  // Long briefs stay short on the day screen; the full text and day.guide open in a sheet.
+  const needSheet=gd.length>0||allText.length>BRIEF_MAX;
+  const flushText=()=>{if(textBuf.length||(needSheet&&!guideShown)){
+    const shown=needSheet&&textBuf.length>BRIEF_MAX?textBuf.slice(0,BRIEF_MAX-1):textBuf;
+    h+=`<div class="card"><span class="eyebrow">${t("brief")}</span>${shown.length?`<div class="brief">${shown.map(x=>`<p class="textitem">${esc(x)}</p>`).join("")}</div>`:""}${needSheet&&!guideShown?`<button type="button" class="guidebtn" data-guide="1">${t("guideOpen")}</button>`:""}${lang==="en"&&t("frNote")&&shown.length?`<p class="textitem dim">${t("frNote")}</p>`:""}</div>`;
+    guideShown=guideShown||needSheet;textBuf=[]}};
   day.items.forEach((it,i)=>{
     if(it.t!=="lift"){textBuf.push(it.text);return}
     flushText();
@@ -529,6 +561,7 @@ document.addEventListener("click",e=>{
   if(b.dataset.wnav){S.selWeek=Math.max(1,Math.min(27,S.selWeek+Number(b.dataset.wnav)));render(true);return}
   if(b.dataset.open){const [w,d]=b.dataset.open.split(":").map(Number);S.sel={w,d};S.tab="today";render(true);window.scrollTo(0,0);return}
   if(b.dataset.week){S.selWeek=Number(b.dataset.week);S.tab="week";render(true);window.scrollTo(0,0);return}
+  if(b.dataset.guide){openGuide();return}
   if(b.id==="export"){doExport();return}
   if(b.id==="backup"){doBackup();return}
   if(b.id==="signout"){P27.signOut();return}
